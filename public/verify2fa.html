@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2FA Verification - Secure Auth</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 min-h-screen flex items-center justify-center">
+
+  <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md">
+    <h2 class="text-3xl font-bold text-white text-center mb-2">🔑 2FA Verification</h2>
+    <p class="text-gray-400 text-center mb-6">Enter the 6-digit code from your authenticator app</p>
+
+    <div id="errorMsg" class="hidden bg-red-500 text-white p-3 rounded-lg mb-4 text-sm"></div>
+
+    <div class="mb-6">
+      <label class="block text-gray-300 mb-2 text-sm">6-Digit Code</label>
+      <input type="text" id="token" placeholder="000000" maxlength="6"
+        class="w-full bg-gray-700 text-white p-3 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500 text-center text-2xl tracking-widest">
+    </div>
+
+    <button onclick="handleVerify()"
+      class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition duration-200">
+      Verify
+    </button>
+
+    <p class="text-gray-400 text-center mt-4 text-sm">
+      <a href="/" class="text-blue-400 hover:underline">← Back to Login</a>
+    </p>
+  </div>
+
+  <script>
+    async function handleVerify() {
+      const token = document.getElementById('token').value;
+      const errorMsg = document.getElementById('errorMsg');
+      const userId = localStorage.getItem('tempUserId');
+
+      errorMsg.classList.add('hidden');
+
+      if (!userId) {
+        window.location.href = '/';
+        return;
+      }
+
+      if (token.length !== 6) {
+        errorMsg.textContent = 'Please enter a 6-digit code';
+        errorMsg.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/verify-2fa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, token }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorMsg.textContent = data.message;
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        // نجح الـ 2FA → احفظ التوكن وروح للـ Dashboard
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        localStorage.removeItem('tempUserId');
+
+        window.location.href = '/dashboard.html';
+
+      } catch (err) {
+        errorMsg.textContent = 'Something went wrong!';
+        errorMsg.classList.remove('hidden');
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Secure Auth</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 min-h-screen">
+
+  <nav class="bg-gray-800 p-4 flex justify-between items-center shadow-lg">
+    <h1 class="text-white text-xl font-bold">👑 Admin Panel</h1>
+    <div class="flex items-center gap-4">
+      <span id="userName" class="text-gray-300 text-sm"></span>
+      <span class="bg-red-600 text-white text-xs px-3 py-1 rounded-full">ADMIN</span>
+      <button onclick="window.location.href='/dashboard.html'"
+        class="bg-gray-600 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded-lg">
+        ← Dashboard
+      </button>
+      <button onclick="handleLogout()"
+        class="bg-red-600 hover:bg-red-700 text-white text-sm px-4 py-2 rounded-lg">
+        Logout
+      </button>
+    </div>
+  </nav>
+
+  <div class="max-w-4xl mx-auto p-8">
+    <div id="accessDenied" class="hidden bg-red-900 border border-red-600 p-8 rounded-2xl text-center">
+      <h2 class="text-4xl mb-4">🚫</h2>
+      <h3 class="text-red-400 text-2xl font-bold mb-2">Access Denied</h3>
+      <p class="text-gray-400">You don't have permission to view this page.</p>
+      <button onclick="window.location.href='/dashboard.html'"
+        class="mt-4 bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg">
+        Go Back
+      </button>
+    </div>
+
+    <div id="adminContent" class="hidden">
+      <h2 class="text-3xl font-bold text-white mb-2">Admin Panel 👑</h2>
+      <p class="text-gray-400 mb-8">Full system access and control</p>
+
+      <div id="serverMsg" class="bg-gray-800 border border-gray-600 p-4 rounded-xl mb-6">
+        <p class="text-gray-400 text-sm">Loading...</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-gray-800 border border-red-600 p-6 rounded-2xl text-center">
+          <h3 class="text-4xl font-bold text-red-400 mb-2">👥</h3>
+          <p class="text-white font-bold">Manage Users</p>
+          <p class="text-gray-400 text-sm">View all registered users</p>
+        </div>
+        <div class="bg-gray-800 border border-red-600 p-6 rounded-2xl text-center">
+          <h3 class="text-4xl font-bold text-red-400 mb-2">⚙️</h3>
+          <p class="text-white font-bold">System Settings</p>
+          <p class="text-gray-400 text-sm">Configure system parameters</p>
+        </div>
+        <div class="bg-gray-800 border border-red-600 p-6 rounded-2xl text-center">
+          <h3 class="text-4xl font-bold text-red-400 mb-2">📊</h3>
+          <p class="text-white font-bold">View Reports</p>
+          <p class="text-gray-400 text-sm">Full analytics access</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!token || !user) {
+      window.location.href = '/';
+    }
+
+    document.getElementById('userName').textContent = user.name;
+
+    async function loadPage() {
+      try {
+        const res = await fetch('/api/admin', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          document.getElementById('accessDenied').classList.remove('hidden');
+          return;
+        }
+
+        document.getElementById('adminContent').classList.remove('hidden');
+        document.getElementById('serverMsg').innerHTML = `
+          <p class="text-green-400 text-sm">✅ ${data.message}</p>
+          <p class="text-gray-400 text-xs mt-1">Logged in as: ${data.user.email}</p>
+        `;
+
+      } catch (err) {
+        document.getElementById('accessDenied').classList.remove('hidden');
+      }
+    }
+
+    loadPage();
+
+    function handleLogout() {
+      localStorage.clear();
+      window.location.href = '/';
+    }
+  </script>
+
+</body>
+</html>

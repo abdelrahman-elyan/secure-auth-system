@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Secure Auth</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 min-h-screen flex items-center justify-center">
+
+  <div class="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md">
+    <h2 class="text-3xl font-bold text-white text-center mb-2">📝 Register</h2>
+    <p class="text-gray-400 text-center mb-6">Create your account</p>
+
+    <div id="errorMsg" class="hidden bg-red-500 text-white p-3 rounded-lg mb-4 text-sm"></div>
+    <div id="successMsg" class="hidden bg-green-500 text-white p-3 rounded-lg mb-4 text-sm"></div>
+
+    <!-- QR Code Section -->
+    <div id="qrSection" class="hidden text-center mb-6">
+      <p class="text-yellow-400 font-bold mb-2">📱 Scan this QR Code with Google Authenticator</p>
+      <img id="qrCode" src="" class="mx-auto rounded-lg border-4 border-yellow-400" />
+      <p class="text-gray-400 text-xs mt-2">After scanning, click Login to continue</p>
+      <a href="/" class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
+        Go to Login
+      </a>
+    </div>
+
+    <div id="registerForm">
+      <div class="mb-4">
+        <label class="block text-gray-300 mb-2 text-sm">Full Name</label>
+        <input type="text" id="name" placeholder="Enter your name"
+          class="w-full bg-gray-700 text-white p-3 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500">
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-300 mb-2 text-sm">Email</label>
+        <input type="email" id="email" placeholder="Enter your email"
+          class="w-full bg-gray-700 text-white p-3 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500">
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-gray-300 mb-2 text-sm">Password</label>
+        <input type="password" id="password" placeholder="Enter your password"
+          class="w-full bg-gray-700 text-white p-3 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500">
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-gray-300 mb-2 text-sm">Role</label>
+        <select id="role"
+          class="w-full bg-gray-700 text-white p-3 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500">
+          <option value="user">User</option>
+          <option value="manager">Manager</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
+      <button onclick="handleRegister()"
+        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg transition duration-200">
+        Register
+      </button>
+
+      <p class="text-gray-400 text-center mt-4 text-sm">
+        Already have an account?
+        <a href="/" class="text-blue-400 hover:underline">Login</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    async function handleRegister() {
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+      const errorMsg = document.getElementById('errorMsg');
+      const successMsg = document.getElementById('successMsg');
+
+      errorMsg.classList.add('hidden');
+      successMsg.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password, role }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          errorMsg.textContent = data.message;
+          errorMsg.classList.remove('hidden');
+          return;
+        }
+
+        // نجح التسجيل → اعرض QR Code
+        document.getElementById('registerForm').classList.add('hidden');
+        document.getElementById('qrSection').classList.remove('hidden');
+        document.getElementById('qrCode').src = data.qrCode;
+
+      } catch (err) {
+        errorMsg.textContent = 'Something went wrong!';
+        errorMsg.classList.remove('hidden');
+      }
+    }
+  </script>
+
+</body>
+</html>
