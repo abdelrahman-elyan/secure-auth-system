@@ -1,3 +1,4 @@
+// Secure Authentication System - v1.0
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
